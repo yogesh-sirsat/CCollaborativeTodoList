@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "5173:5173" # Expose Vite's development server
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    env_file:
+      - ./client/.env
+    stdin_open: true
+    tty: true
+
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    restart: on-failure:3
+    ports:
+      - "3000:3000" # Expose Node.js server
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    env_file:
+      - ./server/.env
+
+  mongo:
+    image: mongo:6
+    container_name: mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+      - ./backend/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+
+volumes:
+  mongo-data:
